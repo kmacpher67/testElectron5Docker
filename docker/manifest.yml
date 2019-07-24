@@ -1,0 +1,20 @@
+applications:
+    -
+        name: ClientReportsServer
+        memory: 1G
+        disk_quota: 1024M
+        instances: 1
+        buildpack: https://scm.sapphirepri.com/infrastructure/sapphire-nodejs-buildpack.git#Release-1.17.1
+        stack: cflinuxfs3
+env:
+    NODE_ENV: production
+    FORCE_SSL: false
+    APP_VERSION: 1.13.0
+    ELECTRON_ENABLE_LOGGING: true
+    ENABLE_ELK_LOGGING: true
+    RABBIT_LOG_EXCHANGE : "com.philips.sapphire.exchange.infrastructure.logger"
+    RABBIT_LOG_TOPIC: "sapphire.system.log"
+services:
+    - eureka-ha-service
+    - sapphire_logger_rabbitmq
+    - RedisService3
