@@ -5,7 +5,7 @@ var app = electron.app;
 console.log("electron.app isReady=" + app.isReady());
 
 setTimeout(function(){ 
- if (app.isReady) {
+ if (app.isReady()) {
   var win = new electron.BrowserWindow(
           {
               width: 1200,  //Current these settings are being overriden with win.maximize().  Just leaving them here for
