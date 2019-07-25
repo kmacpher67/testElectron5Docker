@@ -1,11 +1,19 @@
-i
+Quick notes:
 
 RUN it: 
 
+```
 docker build --tag testelectronDocker:electron5 .
 export IMAGE_ID=$(docker images | grep -Ei 'testelectronDocker' | awk '{print $3}')
 echo $IMAGE_ID
-docker run -itd -e ELECTRON_ENABLE_LOGGING=true --net=host --name clientreportsserver $IMAGE_ID
+#docker run -itd -e ELECTRON_ENABLE_LOGGING=true --net=host --name clientreportsserver $IMAGE_ID
+#docker run --rm --entrypoint /bin/bash -it --privileged kenbs
+docker run -itd -e ELECTRON_ENABLE_LOGGING=true --net=host --privileged --name clientreportsserver $IMAGE_ID
+```
+
+## Adding the  --privileged  to the docker run command: 
+
+
 
 Attach into a shell: 
 
@@ -35,3 +43,33 @@ electron.app isReady=true
 did-finish-load ====
 [9217:0724/193431.423952:WARNING:ipc_message_attachment_set.cc(49)] MessageAttachmentSet destroyed with unconsumed attachments: 0/1
 Write PDF successfully.
+
+
+#Troubleshooting
+
+How to get electron / chrome to run so the sandbox works properly. 
+
+/app/node_modules/electron/dist/electron `--no-sandbox` main.js
+
+https://chromium.googlesource.com/chromium/src/+/master/docs/linux_suid_sandbox_development.md
+
+
+## Chromium 4755 warning linux_suid_sandbox_development
+
+Run as another user than root. 
+Update docker with new user data: 
+
+useradd kensucks mkdir /home/kensucks chown -R kensucks:kensucks /home/kensucks chown -R kensucks:kensucks /app runuser -l kensucks -c 'xvfb-run /app/node_modules/electron/dist/electron --enable-logging /app/main.js'
+works fine without --no-sandbox
+
+
+## Network namespace supported, but failed: errno = Operation not permitted
+
+I need to run docker in `--privileged` 
+Our friends at google fixed a bug with the sandbox in Chromium, now things get very tricky to get the headless version to run.
+https://github.com/karma-runner/karma-chrome-launcher/issues/125
+Apparently --privileged flag on my local Docker host and the error was removed.
+```root@kenmac-VirtualBox:/app# su - electron
+electron@kenmac-VirtualBox:~$ /app/node_modules/electron/dist/electron --version
+Failed to move to new namespace: PID namespaces supported, Network namespace supported, but failed: errno = Operation not permitted
+Trace/breakpoint trap (core dumped)```
