@@ -24,8 +24,10 @@ RUN /usr/bin/apt-get update && \
       npm install && \
       /bin/mv /tmp/supervisor.conf /etc/supervisor/conf.d && \
       /bin/chmod +x /app/start.sh && \
+      /bin/chown -R electron:electron /app && \
       /bin/chown root /app/node_modules/electron/dist/chrome-sandbox && \
       /bin/chmod 4755 /app/node_modules/electron/dist/chrome-sandbox && \
       /bin/rm -rf /var/lib/apt/lists/*
+USER electron
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
