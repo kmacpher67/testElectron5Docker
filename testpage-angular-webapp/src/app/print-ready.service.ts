@@ -6,10 +6,13 @@ import { Inject, Injectable } from '@angular/core';
 export class PrintReadyService {
   private readyToPrintEventName = 'pr-ready-to-print-event';
   private readyToPrintMessage = 'go-time-for-print';
-  private _numberOfPrints=0;
+  public _numberOfPrints=0;
   private has_ipc: boolean;
+  public counterMax = 10000000;  // ten million 10,000,000
+  private timers = [];
+  private timersStart = [];
+  public output = [];
 
-  
   public getReadyToPrintMessage() {
     return this.readyToPrintMessage;
   }
@@ -17,6 +20,19 @@ export class PrintReadyService {
   public setReadyToPrintMessage(newMessageValue) {
     this.readyToPrintMessage=newMessageValue;
   }
+
+  public setTimerStart(timerStartPosition) {
+    this.timersStart[timerStartPosition] = new Date();
+  }
+
+
+  public gettimer(timerStartPosition) {
+    if (timerStartPosition == undefined) {
+      timerStartPosition=0;
+    }
+    return ""+this.timers[timerStartPosition];
+  }
+
 
   // public readyObservable(): any {
   //   const readyToPrintObservable = new Observable((observer) => {
@@ -31,10 +47,13 @@ export class PrintReadyService {
   //   return readyToPrintObservable;
   // }
 
-    producePage() {
+    producePage(timerStartPosition) {
+      console.log('producePage()')
+      this._numberOfPrints++;
+      this.timersStart[timerStartPosition] = new Date();
       var w=0;
       var text="";
-      for(w=0; w<10000000; w++ ) {
+      for(w=0; w<this.counterMax; w++ ) {
         if ( w%357717 === 0) {
           text += " " + w;
         }
@@ -42,7 +61,9 @@ export class PrintReadyService {
           text += " ";
         }
       }
-      return text;
+      this.timers[timerStartPosition] = (new Date().getMilliseconds()-this.timersStart[timerStartPosition].getMilliseconds());
+      this.output[timerStartPosition] = '' + text;
+      return this.output[timerStartPosition];
     }
 
     sendReadyToPrintIPC() {

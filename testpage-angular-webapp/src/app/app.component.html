@@ -1,31 +1,18 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
+<div>
   <h1>
-    Welcome to {{ title }}!
+    Welcome to {{ title }} !
   </h1>
-
-  <div class="timing">
-    {{ timer(3) }} <br>
-  </div>
   
-  <div id="login-test">
-      {{ printComponentOutput(0) }}
-  </div>
-  <div class="timing">
-    <br> {{ timer(0) }} <br>
-  </div>
-  <div id="graph-test">
-      {{printComponentOutput(1)}}
-  </div>
-  <div class="timing">
-    <br>{{ timer(1) }} <br>
-  </div>
-  <div>
-    {{ printComponentOutput(2)}}
-  </div>
-  <div class="timing">
-    <br> {{ timer(2) }}  <br>
-  </div>  
-</div>
-<router-outlet></router-outlet>
+  <!-- Angular -->
+<ul>
+  <li *ngFor="let item of items, index as i">
+      <div >
+        {{ printComponentOutput(i) }}
+          <br/>
+        {{ timer(i) }} 
+      </div>
+  </li>
+</ul>
 
+</div> <!--  bottom tag -->

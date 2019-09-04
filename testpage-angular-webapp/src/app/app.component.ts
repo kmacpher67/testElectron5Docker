@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component , ChangeDetectorRef } from '@angular/core';
 import { PrintReadyService } from './print-ready.service';
 
 //const ipc = window.require('electron').ipcRenderer;
@@ -12,34 +12,40 @@ import { PrintReadyService } from './print-ready.service';
 
 export class AppComponent {
 
-  constructor(private print: PrintReadyService) { }
+  constructor(
+      public cdRef:ChangeDetectorRef,
+      public print: PrintReadyService) { }
 
   title = 'testpage-project';
   counter = 0;
-  timers = [new Date(), new Date(), new Date(), new Date()];
+  public items  = [0,1,2,3,4]
+  
+
+  ngAfterViewInit() {
+    console.log('ngAfterViewInit()');
+    this.cdRef.detectChanges();
+  }
 
   //ready = this.print.broadcastReadyToPrintEvent();
 
   timer(timerStartPosition) {
-    console.log(timerStartPosition);
-    if (timerStartPosition === undefined) {
-      timerStartPosition = 0;
-    } 
-    console.log(this.timers);
-    console.log(timerStartPosition);
-    console.log(this.timers[timerStartPosition]);
-    console.log(this.timers[timerStartPosition].getMilliseconds());
-    return ( new Date().getMilliseconds()-this.timers[timerStartPosition].getMilliseconds());
+    console.log('timer function =' + timerStartPosition);
+    return this.print.gettimer(timerStartPosition);
   }
 
   printComponentOutput(timerStartPosition) {
+
+    console.log('printComponentOutput function =' + timerStartPosition +" counter=" + this.counter);
+    if (this.counter++ > this.items.length || this.print.output[timerStartPosition] !== undefined) 
+      {
+        return this.print.output[timerStartPosition];
+    }
     if (timerStartPosition === undefined) {
       timerStartPosition = 0;
     } 
-    this.timers[timerStartPosition] = new Date();
-    if ( this.counter++ > 3) {
-      this.print.broadcastReadyToPrintEvent();
-    }
-    return this.print.producePage();
+    // if ( this.counter++ > 3) {
+    //   this.print.broadcastReadyToPrintEvent();
+    // }
+    return this.print.producePage(timerStartPosition);
   }
 }
