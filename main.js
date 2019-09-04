@@ -60,7 +60,7 @@ function createMainWindow() {
                 if (!printedPDF) {
                   console.log("PRINTING PDF per did-finish-load  ====");
                   printedPDF=true;
-                  printPDF();
+                  printPDF("did-finish-load");
                 }  
               }, 200);
 
@@ -72,26 +72,26 @@ function createMainWindow() {
             win.webContents.executeJavaScript(jsLogInjector);
       })
 
-      win.webContents.on('pr-ready-to-print-event', (event, level, message, line, sourceId) => {
-        console.log("pr-ready-to-print-event: occurred from main.js event=" + event);
-        console.log("pr-ready-to-print-event: occurred from main.js level=" + level);
-        console.log("pr-ready-to-print-event: occurred from main.js message=" + message);
-        console.log("pr-ready-to-print-event: occurred from main.js line=" + line);
-        console.log("pr-ready-to-print-event: occurred from main.js sourceId=" + sourceId);
-        process.send("pr-ready-to-print-event: message=" + message);
-      });
+      // win.webContents.on('pr-ready-to-print-event', (event, level, message, line, sourceId) => {
+      //   console.log("pr-ready-to-print-event: occurred from main.js event=" + event);
+      //   console.log("pr-ready-to-print-event: occurred from main.js level=" + level);
+      //   console.log("pr-ready-to-print-event: occurred from main.js message=" + message);
+      //   console.log("pr-ready-to-print-event: occurred from main.js line=" + line);
+      //   console.log("pr-ready-to-print-event: occurred from main.js sourceId=" + sourceId);
+      //   process.send("pr-ready-to-print-event: message=" + message);
+      // });
 
       win.webContents.on('console-message', (event, level, message, line, sourceId) => {
-        console.log("console-message: occurred from main.js event=" + event);
-        console.log("console-message: occurred from main.js level=" + level);
-        console.log("console-message: occurred from main.js message=" + message);
-        console.log("console-message: occurred from main.js line=" + line);
-        console.log("console-message: occurred from main.js sourceId=" + sourceId);
+        // console.log("console-message: occurred from main.js event=" + event);
+        // console.log("console-message: occurred from main.js level=" + level);
+        // console.log("console-message: occurred from main.js message=" + message);
+        // console.log("console-message: occurred from main.js line=" + line);
+        // console.log("console-message: occurred from main.js sourceId=" + sourceId);
         process.send("console-message: " + message);
         if (!printedPDF && message.includes("pr-ready-to-print-event")) {
           console.log("PRINTING PDF per ready to print event!!!");
           printedPDF=true;
-          printPDF();
+          printPDF('pr-ready-to-print-event');
         }
       });
 
@@ -104,12 +104,12 @@ function createMainWindow() {
 
     }
 
-    function printPDF() {
+    function printPDF(filenamePrePackcage) {
       win.webContents.printToPDF({}, (error, data) => {
         if (error) throw error
-        fs.writeFile('print-did-finish-load-'+d.toString()+'.pdf', data, (error) => {
+        fs.writeFile(filenamePrePackcage+'-'+d.toString()+'.pdf', data, (error) => {
           if (error) throw error
-          console.log('Write PDF successfully.');
+          console.log('Write PDF successfully.' + filenamePrePackcage);
           setTimeout(function(){ app.quit(); },19500);
         })
       });
