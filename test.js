@@ -1,11 +1,12 @@
 'use strict';
 
-var externalCallback;
 var electron = require('electron');
 var proc = require('child_process');
 var filename = 'testpdfprint.pdf';
 var child;
 var sandbox='--no-sandbox'; //'--no-sandbox';
+var logNet='--log-net-log=/home/kenmac/dev-ui/testElectron5/net-log'+new Date().getMilliseconds();
+var logLevel='--v=1';
 
 var exec = require('child_process').exec;
 
@@ -18,7 +19,7 @@ var exec = require('child_process').exec;
     //Start electron child process.  Pass in config as string and open IPC channel for sending messages
     child = proc.spawn(
         electron,
-        [sandbox, 'main.js', filename],
+        [sandbox, logNet, logLevel, 'main.js', filename],
             {
 				ELECTRON_ENABLE_LOGGING:1,   
 				stdio: [null, null, null, 'ipc']}
@@ -56,7 +57,7 @@ var exec = require('child_process').exec;
 		}
     });
 
-	//console.log("== testCallToMain: after error  function 2");
+	//console.log("== test.jsCallsToMain.js: after error  function 2");
 
 	child.on('message', function(message) {
         console.log( message);
@@ -75,4 +76,4 @@ var exec = require('child_process').exec;
 		fn && fn();
 	}
 
-	console.log("== testCallToMain: bottom of page");
+	console.log("== test.jsCallToMain: bottom of page");

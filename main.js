@@ -1,8 +1,13 @@
 var electron = require('electron');
-const fs = require('fs');
 var app = electron.app;
 var ipcMain = electron.ipcMain;
+var app = electron.app;
+const { netLog } = require('electron')
+const fs = require('fs');
 const console = require('console');
+var createdWindow=false;
+
+console.log("run with export ELECTRON_ENABLE_LOGGING=true for renderer logs = " + process.env.ELECTRON_ENABLE_LOGGING);
 
 setTimeout(function(){ 
     console.log("LOGS: 2222 console.log electron.app isReady 120ms=" + app.isReady());
@@ -11,10 +16,13 @@ setTimeout(function(){
 process.send = process.send || function () {};
 setTimeout(function(){ 
   process.send('LOGS: process.send electron.app isReady= ' + app.isReady());
-  if (app.isReady()) {
+  if (app.isReady() && !createdWindow) {
     process.send('LOGS: createMainWindow(); is ready');
-    app.console = new console.Console(process.stdout, process.stderr);
     createMainWindow();
+  }
+  if (createdWindow) { 
+    console.log("createMainWindow(); Already fired before setTimeout event! ");
+    process.send('LOGS: createMainWindow(); Already fired before setTimeout event! ');
   }
   else {
     console.log("NOT READY!!! ");
@@ -98,8 +106,19 @@ function createMainWindow() {
     // "})();";
     // win.webContents.executeJavaScript(jsLogInjectorError);
 
-};// of createmainWindow function!!
+};// of createMainWindow function!!
 
+app.on('ready', async function () {
+  filename = process.argv.pop();  //get the filename with UUID
+  netLog.startLogging('/home/kenmac/dev-ui/testElectron5/net-log-'+new Date().getMilliseconds());
+
+  if (!createdWindow) {
+    createdWindow=true;
+    process.send('logs: createMainWindow(); is ready from app.on(ready, function() ');
+    createMainWindow();
+  }
+  console.log("")
+});
 
 ipcMain.on('error', function(ev, error) {
   process.send('ERROR: from renderer-' + error);
@@ -108,3 +127,18 @@ ipcMain.on('error', function(ev, error) {
 ipcMain.on('logs', function(ev, logs) {
   process.send('LOGS: from renderer-'+ logs);
 });
+
+process.on('message', function(config) {
+  _config = config;
+  console.log("message, function(config) occurred");
+  process.send('message');
+  createMainWindow();
+});
+
+console.log = function (message) {
+  process.send(message);
+}
+
+console.error = function (message) {
+  process.send(message);
+}

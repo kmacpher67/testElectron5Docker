@@ -12,7 +12,8 @@ app.service('prReportsPhantomService', function() {
     // this.timersStart[timerStartPosition] = new Date();
     var w=0;
     var text="";
-    for(w=0; w<10000000; w++ ) {
+    //         100million
+    for(w=0; w<100000000; w++ ) {
       if ( w%357717 === 0) {
         text += " " + w;
       }
