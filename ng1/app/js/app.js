@@ -12,12 +12,12 @@ app.service('prReportsPhantomService', function() {
     // this.timersStart[timerStartPosition] = new Date();
     var w=0;
     var text="";
-    //         100million
-    for(w=0; w<100000000; w++ ) {
-      if ( w%357717 === 0) {
+    //         100milion
+    for(w=0; w<200000000; w++ ) {
+      if ( w%757717 === 0) {
         text += " " + w;
       }
-      if ( w%397919 === 0) {
+      if ( w%257717 === 0) {
         text += " ";
       }
     }
@@ -33,8 +33,7 @@ app.service('prReportsPhantomService', function() {
 app.controller("HelloWorldController", function($scope, prReportsPhantomService) {
   $scope.message = "Hello World!";
 
-
   $scope.hex = prReportsPhantomService.myFunc(1);
-
-
+  $scope.$broadcast('pr-ready-to-print-event');
+  console.log('pr-ready-to-print-event');
 })

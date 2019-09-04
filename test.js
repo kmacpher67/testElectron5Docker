@@ -6,7 +6,7 @@ var filename = 'testpdfprint.pdf';
 var child;
 var sandbox='--no-sandbox'; //'--no-sandbox';
 var logNet='--log-net-log=/home/kenmac/dev-ui/testElectron5/net-log'+new Date().getMilliseconds();
-var logLevel='--v=1';
+var enableLogging='--enable-logging';
 
 var exec = require('child_process').exec;
 
@@ -19,7 +19,7 @@ var exec = require('child_process').exec;
     //Start electron child process.  Pass in config as string and open IPC channel for sending messages
     child = proc.spawn(
         electron,
-        [sandbox, logNet, 'main.js', filename],
+        [sandbox, logNet, enableLogging, 'main.js', filename],
             {
 				ELECTRON_ENABLE_LOGGING:1,   
 				stdio: [null, null, null, 'ipc']}
@@ -33,17 +33,17 @@ var exec = require('child_process').exec;
 	//   console.log("AFTER stdout="+stdout);
 	// });
 
-	child.on('logs', function(logs) {
-        console.log('child process logs' +  logs);
-	});
+	// child.on('logs', function(logs) {
+    //     console.log('child process logs' +  logs);
+	// });
 	
-	child.on('error', function(error) {
-        console.log('child process error' +  error);
-	});
+	// child.on('error', function(error) {
+    //     console.log('child process error' +  error);
+	// });
 
 
 	child.on('message', function(message) {
-		console.log("node test child.on( message received from main.js process...");
+		//console.log("node test child.on( message received from main.js process...");
 
         if(message === 'DONE') {
 			console.log("test.js message is equal to DONE!!!!!")
@@ -55,21 +55,16 @@ var exec = require('child_process').exec;
 		else if(!message.includes("LOGS")) {
 			console.log("simple message is: = " + message);
 		}
+		else {
+			console.log("message here:" + message);
+		}
     });
 
-	//console.log("== test.jsCallsToMain.js: after error  function 2");
-
-	child.on('message', function(message) {
-        console.log( message);
-	});
-
-	console.log("== testCallToMain: after message  function 3");
-	onEvent('logs', child);
-    onEvent('errors', child);
+	// console.log("== testCallToMain: after message  function 3");
+	// onEvent('logs', child);
+    // onEvent('errors', child);
     onEvent('close', child);
 	onEvent('exit', child);
-
-	console.log("== testCallToMain: after onEvents  function 4");
 
 	function onEvent (event, child, fn) {
 		child.on(event, data => console.log(`PID::${child.pid} EVENT::${event.toUpperCase()} DATA::${data}`));

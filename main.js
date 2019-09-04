@@ -1,4 +1,3 @@
-var log = require("electron-log");
 var electron = require('electron');
 var app = electron.app;
 var ipcMain = electron.ipcMain;
@@ -6,13 +5,11 @@ var app = electron.app;
 const { netLog } = require('electron')
 const fs = require('fs');
 var createdWindow=false;
-
-log.transports.file.level = true;
-log.transports.console.level = true;
-log.transports.remote.level = true;
-log.transports.rendererConsole.level = true;
+var printedPDF=false;
 
 console.log("run with export ELECTRON_ENABLE_LOGGING=true for renderer logs = " + process.env.ELECTRON_ENABLE_LOGGING);
+
+process.enablePromiseAPIs=true;
 
 setTimeout(function(){ 
     console.log("LOGS: 2222 console.log electron.app isReady 120ms=" + app.isReady());
@@ -36,6 +33,8 @@ setTimeout(function(){
 }, 120);
 
 function createMainWindow() {
+  console.log("main.js - createMainWindow() before.")
+  netLog.startLogging('/home/kenmac/dev-ui/testElectron5/net-log-'+new Date().toTimeString());
  if (app.isReady) {
   process.send('LOGS: ele.main.js: startng win = new electron.BrowserWindow');
   var win = new electron.BrowserWindow(
@@ -54,32 +53,76 @@ function createMainWindow() {
       win.loadURL('http://localhost:8000/');
 
       win.webContents.on('did-finish-load', () => {
+        process.send('did-finish-load: ele.main.js:= win. printedPDF');
             // Use default printing options
-            console.log("did-finish-load ====");
-            win.webContents.printToPDF({}, (error, data) => {
-              if (error) throw error
-              fs.writeFile('print-did-finish-load-'+d.toString()+'.pdf', data, (error) => {
-                if (error) throw error
-                console.log('Write PDF successfully.');
-                setTimeout(function(){ app.quit(); },19500);
-              })
-            });
+            setTimeout(function(){
+                console.log("did-finish-load ====");
+                if (!printedPDF) {
+                  printedPDF=true;
+                  printPDF();
+                }  else {
+                  console.log("did-finish-load-event already printed PDF!");
+                };
+              }, 200);
 
             // not loaded? 
             var jsLogInjector = "(function () {  console.log('inside win.webContents.on( did-finish-load renderer injected code: jsLogInjector'); " +
-            "  var ipc = require('electron').ipcRenderer;" +
-            "  ipc.send('logs', 'hey this is FROM TEST INJECTED javascript code sending log renderer'); " + 
+            // "  var ipc = require('electron').ipcRenderer;" +
+            // "  ipc.send('logs', 'hey this is FROM TEST INJECTED javascript code sending log renderer'); " + 
             "})();";
             win.webContents.executeJavaScript(jsLogInjector);
       })
+
+      win.webContents.on('pr-ready-to-print-event', (event, level, message, line, sourceId) => {
+        console.log("pr-ready-to-print-event: occurred from main.js event=" + event);
+        console.log("pr-ready-to-print-event: occurred from main.js level=" + level);
+        console.log("pr-ready-to-print-event: occurred from main.js message=" + message);
+        console.log("pr-ready-to-print-event: occurred from main.js line=" + line);
+        console.log("pr-ready-to-print-event: occurred from main.js sourceId=" + sourceId);
+        process.send("pr-ready-to-print-event: message=" + message);
+      });
+
+      win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+        console.log("console-message: occurred from main.js event=" + event);
+        console.log("console-message: occurred from main.js level=" + level);
+        console.log("console-message: occurred from main.js message=" + message);
+        console.log("console-message: occurred from main.js line=" + line);
+        console.log("console-message: occurred from main.js sourceId=" + sourceId);
+        process.send("console-message: " + message);
+        if (!printedPDF && message.includes("pr-ready-to-print-event")) {
+          printedPDF=true;
+          printPDF();
+        } else {
+          console.log("console-message-event already printed PDF!");
+        };
+      });
+
+      win.webContents.on('ipc-message', (event, channel, args) => {
+        console.log("ipc-message: occurred from main.js event=" + JSON.stringify(event));
+        console.log("ipc-message: occurred from main.js channel=" + channel);
+        console.log("ipc-message: occurred from main.js args=" + args);
+        process.send("ipc-message: event=" + event);
+      });
+
+    }
+
+    function printPDF() {
+      win.webContents.printToPDF({}, (error, data) => {
+        if (error) throw error
+        fs.writeFile('print-did-finish-load-'+d.toString()+'.pdf', data, (error) => {
+          if (error) throw error
+          console.log('Write PDF successfully.');
+          setTimeout(function(){ app.quit(); },19500);
+        })
+      });
     }
 
     process.send('LOGS: jsLogInjector = executeJavaScript' );
     process.send("LOGS: before injector code 1 logs render" );
 
     var jsLogInjector = "(function () {  console.log('STARTING 11111 AFTER on did-finsih  renderer injected code: jsLogInjector'); " +
-    "  var ipc = require('electron').ipcRenderer; " +
-    "  ipc.send('logs', 'hey this is FROM TEST INJECTED javascript code sending log renderer'); " + 
+    // "  var ipc = require('electron').ipcRenderer; " +
+    // "  ipc.send('logs', 'hey this is FROM TEST INJECTED javascript code sending log renderer'); " + 
     "})();";
     win.webContents.executeJavaScript(jsLogInjector);
 
@@ -115,14 +158,14 @@ function createMainWindow() {
 
 app.on('ready', async function () {
   filename = process.argv.pop();  //get the filename with UUID
-  netLog.startLogging('/home/kenmac/dev-ui/testElectron5/net-log-'+new Date().getMilliseconds());
 
   if (!createdWindow) {
     createdWindow=true;
     process.send('logs: createMainWindow(); is ready from app.on(ready, function() ');
     createMainWindow();
   }
-  console.log("")
+  console.log("this is the createdWinow empty log")
+  process.send("process.send createdWindow end:");
 });
 
 ipcMain.on('error', function(ev, error) {
@@ -136,17 +179,13 @@ ipcMain.on('logs', function(ev, logs) {
 process.on('message', function(config) {
   _config = config;
   console.log("message, function(config) occurred");
-  process.send('message');
+  process.send("message:");
   createMainWindow();
 });
 
 console.log = function (message) {
   process.send("LOGS: " + message);
-  log.info('Hello, log');
-  log.warn('Some problem appears');
-  log.debug(message);
 }
 console.error = function (message) {
-  process.send(message);
-  log.warn(message);
+  process.send("ERROR: " + message);
 }
