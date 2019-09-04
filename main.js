@@ -1,11 +1,16 @@
+var log = require("electron-log");
 var electron = require('electron');
 var app = electron.app;
 var ipcMain = electron.ipcMain;
 var app = electron.app;
 const { netLog } = require('electron')
 const fs = require('fs');
-const console = require('console');
 var createdWindow=false;
+
+log.transports.file.level = true;
+log.transports.console.level = true;
+log.transports.remote.level = true;
+log.transports.rendererConsole.level = true;
 
 console.log("run with export ELECTRON_ENABLE_LOGGING=true for renderer logs = " + process.env.ELECTRON_ENABLE_LOGGING);
 
@@ -135,18 +140,13 @@ process.on('message', function(config) {
   createMainWindow();
 });
 
-var log = require("electron-log"), msgInfo = [], msgErr = [];
-
-// Preserve the old, built-in functions
-console.log_old = console.log;
-console.error_old = console.error;
-
 console.log = function (message) {
-  msgInfo.push(message);
-  log.info(message);
+  process.send("LOGS: " + message);
+  log.info('Hello, log');
+  log.warn('Some problem appears');
+  log.debug(message);
 }
-
 console.error = function (message) {
-  msgErr.push(message);
-  log.error(message);
+  process.send(message);
+  log.warn(message);
 }
