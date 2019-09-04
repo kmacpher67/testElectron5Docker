@@ -58,11 +58,10 @@ function createMainWindow() {
             setTimeout(function(){
                 console.log("did-finish-load ====");
                 if (!printedPDF) {
+                  console.log("PRINTING PDF per did-finish-load  ====");
                   printedPDF=true;
                   printPDF();
-                }  else {
-                  console.log("did-finish-load-event already printed PDF!");
-                };
+                }  
               }, 200);
 
             // not loaded? 
@@ -90,11 +89,10 @@ function createMainWindow() {
         console.log("console-message: occurred from main.js sourceId=" + sourceId);
         process.send("console-message: " + message);
         if (!printedPDF && message.includes("pr-ready-to-print-event")) {
+          console.log("PRINTING PDF per ready to print event!!!");
           printedPDF=true;
           printPDF();
-        } else {
-          console.log("console-message-event already printed PDF!");
-        };
+        }
       });
 
       win.webContents.on('ipc-message', (event, channel, args) => {
