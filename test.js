@@ -19,7 +19,7 @@ var exec = require('child_process').exec;
     //Start electron child process.  Pass in config as string and open IPC channel for sending messages
     child = proc.spawn(
         electron,
-        [sandbox, logNet, logLevel, 'main.js', filename],
+        [sandbox, logNet, 'main.js', filename],
             {
 				ELECTRON_ENABLE_LOGGING:1,   
 				stdio: [null, null, null, 'ipc']}
