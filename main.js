@@ -135,10 +135,18 @@ process.on('message', function(config) {
   createMainWindow();
 });
 
+var log = require("electron-log"), msgInfo = [], msgErr = [];
+
+// Preserve the old, built-in functions
+console.log_old = console.log;
+console.error_old = console.error;
+
 console.log = function (message) {
-  process.send(message);
+  msgInfo.push(message);
+  log.info(message);
 }
 
 console.error = function (message) {
-  process.send(message);
+  msgErr.push(message);
+  log.error(message);
 }
