@@ -1,5 +1,0 @@
-reportsserver:
-  image: 2fbbd5a2f8a1
-  ports:
-    - "80:80"
-    - "8761:8761"
